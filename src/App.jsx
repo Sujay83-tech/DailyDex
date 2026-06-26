@@ -258,6 +258,7 @@ export default function App() {
   };
 
   const completionStats = getDailyCompletionStats();
+  const { order, dragIndex, onDragStart, onDragOver, onDragEnd } = useDashboardSections();
 
   // Show a nice loading skeleton during initial load
   if (loading && dailyHistory.length === 0) {
@@ -282,8 +283,6 @@ export default function App() {
 
   // Calculate streaks to display a congrats banner if high completion is achieved
   const isExcellentDay = completionStats.percentage === 100;
-
-  const { order, dragIndex, onDragStart, onDragOver, onDragEnd } = useDashboardSections();
 
   const rightPanelSections = {
     mascot: (
