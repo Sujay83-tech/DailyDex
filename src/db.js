@@ -10,9 +10,15 @@ const isSupabaseConfigured =
   supabaseUrl !== 'YOUR_SUPABASE_URL' && 
   supabaseAnonKey !== 'YOUR_SUPABASE_ANON_KEY';
 
-export const supabase = isSupabaseConfigured 
-  ? createClient(supabaseUrl, supabaseAnonKey) 
-  : null;
+let supabaseInstance = null;
+if (isSupabaseConfigured) {
+  try {
+    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
+  } catch (e) {
+    console.warn('Failed to create Supabase client, using LocalStorage fallback:', e.message);
+  }
+}
+export const supabase = supabaseInstance;
 
 console.log(
   isSupabaseConfigured 
