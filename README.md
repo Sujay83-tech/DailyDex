@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # DailyDex
+=======
+ ##DailyDex
+>>>>>>> f8f7f7d60752a5a6f0b17951a641e5122b849963
 
 Personal daily habit tracker & accountability dashboard. Built with React, Vite, and Supabase.
 
@@ -70,3 +74,9 @@ create policy "Enable full access for anon key" on weekly_accountability
    - `VITE_SUPABASE_URL`
    - `VITE_SUPABASE_ANON_KEY`
 5. Deploy
+<<<<<<< HEAD
+=======
+
++ Thought: 681ms
+Done. README is updated w
+>>>>>>> f8f7f7d60752a5a6f0b17951a641e5122b849963
