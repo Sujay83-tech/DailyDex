@@ -1,6 +1,7 @@
 import React from 'react';
 import TiltCard from './TiltCard';
 import { Flame as FlameIcon, Dumbbell, BookOpen, Briefcase, Moon } from 'lucide-react';
+import GamificationBadges from './GamificationBadges';
 
 /**
  * The 4 core pillars that define a "consistent day".
@@ -176,6 +177,9 @@ export default function ConsistencyMascot({ dailyHistory, currentDateStr, comple
             </div>
           ))}
         </div>
+
+        {/* Gamification Badges */}
+        <GamificationBadges streak={streak} />
       </div>
     </TiltCard>
   );

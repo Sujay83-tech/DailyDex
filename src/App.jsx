@@ -1,14 +1,49 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { db } from './db';
 import DashboardHeader from './components/DashboardHeader';
+import KpiSummaryRow from './components/KpiSummaryRow';
 import OverviewPanel from './components/OverviewPanel';
 import ChecklistSection, { HABITS } from './components/ChecklistSection';
 import SupplementsTracker from './components/SupplementsTracker';
 import AccountabilityTracker from './components/AccountabilityTracker';
 import TrendCharts from './components/TrendCharts';
 import HistoryPanel from './components/HistoryPanel';
+import WeeklyHeatmap from './components/WeeklyHeatmap';
+import ConsistencyMascot from './components/ConsistencyMascot';
 import TiltCard from './components/TiltCard';
-import { Sparkles, Trophy } from 'lucide-react';
+import { Sparkles, Trophy, GripVertical } from 'lucide-react';
+
+const SECTION_ORDER_KEY = 'dailydex_section_order';
+
+function useDashboardSections() {
+  const defaultOrder = ['accountability', 'mascot', 'heatmap', 'trends', 'history'];
+  const [order, setOrder] = useState(() => {
+    try {
+      const saved = localStorage.getItem(SECTION_ORDER_KEY);
+      return saved ? JSON.parse(saved) : defaultOrder;
+    } catch { return defaultOrder; }
+  });
+  const [dragIndex, setDragIndex] = useState(null);
+
+  const persistOrder = useCallback((newOrder) => {
+    setOrder(newOrder);
+    localStorage.setItem(SECTION_ORDER_KEY, JSON.stringify(newOrder));
+  }, []);
+
+  const onDragStart = useCallback((index) => { setDragIndex(index); }, []);
+  const onDragOver = useCallback((e, index) => {
+    e.preventDefault();
+    if (dragIndex === null || dragIndex === index) return;
+    const newOrder = [...order];
+    const [removed] = newOrder.splice(dragIndex, 1);
+    newOrder.splice(index, 0, removed);
+    persistOrder(newOrder);
+    setDragIndex(index);
+  }, [dragIndex, order, persistOrder]);
+  const onDragEnd = useCallback(() => { setDragIndex(null); }, []);
+
+  return { order, dragIndex, onDragStart, onDragOver, onDragEnd };
+}
 
 // Helper to get local YYYY-MM-DD date string
 const getLocalDateString = (dateObj = new Date()) => {
@@ -248,32 +283,70 @@ export default function App() {
   // Calculate streaks to display a congrats banner if high completion is achieved
   const isExcellentDay = completionStats.percentage === 100;
 
+  const { order, dragIndex, onDragStart, onDragOver, onDragEnd } = useDashboardSections();
+
+  const rightPanelSections = {
+    mascot: (
+      <ConsistencyMascot
+        dailyHistory={dailyHistory}
+        currentDateStr={currentDate}
+        completedTasks={completedTasks}
+      />
+    ),
+    accountability: (
+      <AccountabilityTracker
+        weeklyHistory={weeklyHistory}
+        onToggleAccountability={handleToggleAccountability}
+        currentDateStr={currentDate}
+      />
+    ),
+    heatmap: (
+      <WeeklyHeatmap
+        dailyHistory={dailyHistory}
+        currentDateStr={currentDate}
+      />
+    ),
+    trends: (
+      <TrendCharts
+        dailyHistory={dailyHistory}
+        currentDateStr={currentDate}
+      />
+    ),
+    history: (
+      <HistoryPanel dailyHistory={dailyHistory} />
+    ),
+  };
+
   return (
     <>
-      {/* 3D Perspective Grid Background */}
       <div className="perspective-grid-container">
         <div className="grid-3d" />
         <div className="grid-horizon-glow" />
       </div>
 
       <div className="app-container">
-        {/* Header Panel */}
-        <DashboardHeader 
-          date={currentDate} 
-          stats={completionStats} 
+        <DashboardHeader
+          date={currentDate}
+          stats={completionStats}
           isMock={db.isMock}
         />
 
-        {/* Completion Banner */}
+        <KpiSummaryRow
+          dailyHistory={dailyHistory}
+          currentDateStr={currentDate}
+          completedTasks={completedTasks}
+          completionStats={completionStats}
+        />
+
         {isExcellentDay && (
-          <TiltCard 
-            className="glow-success" 
+          <TiltCard
+            className="glow-success"
             glowColor="rgba(20, 184, 166, 0.12)"
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '1rem', 
-              background: 'rgba(20, 184, 166, 0.08)', 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '1rem',
+              background: 'rgba(20, 184, 166, 0.08)',
               borderColor: 'var(--color-success)',
               padding: '1rem'
             }}
@@ -296,44 +369,49 @@ export default function App() {
         </TiltCard>
       )}
 
-      {/* 24-Hour Overview */}
       <OverviewPanel completedHours={completedHours} />
 
-      {/* Primary Grid Layout */}
       <div className="dashboard-grid">
-        {/* Left Side: Checklist and Supplements */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          <ChecklistSection 
+          <ChecklistSection
             completedTasks={completedTasks}
             readingSubject1={readingSubject1}
             readingSubject2={readingSubject2}
             onToggleTask={handleToggleTask}
             onUpdateReadingSubject={handleUpdateReadingSubject}
+            dailyHistory={dailyHistory}
+            currentDateStr={currentDate}
           />
 
-          <SupplementsTracker 
+          <SupplementsTracker
             completedSupplements={completedSupplements}
             onToggleSupplement={handleToggleSupplement}
           />
         </div>
 
-        {/* Right Side: Charts & Private Tracker */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Weekly Accountability Check-in */}
-          <AccountabilityTracker 
-            weeklyHistory={weeklyHistory}
-            onToggleAccountability={handleToggleAccountability}
-            currentDateStr={currentDate}
-          />
-
-          {/* Trend Charts */}
-          <TrendCharts 
-            dailyHistory={dailyHistory} 
-            currentDateStr={currentDate}
-          />
-
-          {/* Historical Log */}
-          <HistoryPanel dailyHistory={dailyHistory} />
+          {order.map((sectionId, index) => (
+            <div
+              key={sectionId}
+              draggable
+              onDragStart={() => onDragStart(index)}
+              onDragOver={(e) => onDragOver(e, index)}
+              onDragEnd={onDragEnd}
+              style={{
+                position: 'relative',
+                opacity: dragIndex === index ? 0.5 : 1,
+                transition: 'opacity 0.15s',
+              }}
+            >
+              <div
+                className="drag-handle"
+                title="Drag to reorder"
+              >
+                <GripVertical size={14} />
+              </div>
+              {rightPanelSections[sectionId]}
+            </div>
+          ))}
         </div>
       </div>
     </div>
