@@ -28,7 +28,7 @@ export default function DashboardHeader({ date, stats, isMock }) {
     <header className="header-container">
       <div className="header-info">
         <h1 style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-          My Growth Space
+          DailyDex
         </h1>
         <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
           <Calendar size={15} style={{ color: 'var(--color-primary)' }} />

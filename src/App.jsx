@@ -276,7 +276,7 @@ export default function App() {
           <svg><circle className="circular-bg" r="16" cx="24" cy="24" /><circle className="circular-fg" r="16" cx="24" cy="24" style={{ strokeDasharray: '50 100' }} /></svg>
         </div>
         <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-        <span>Synchronizing with growth space...</span>
+        <span>Loading your DailyDex...</span>
       </div>
     );
   }
